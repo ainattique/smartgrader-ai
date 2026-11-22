@@ -1,0 +1,33 @@
+services:
+  backend:
+    image: ainulattique/smartgrader-backend:latest
+    container_name: smartgrader-backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - smartgrader_data:/app/data
+    environment:
+      - FLASK_ENV=production
+      - DB_PATH=/app/data/smartgrader.db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  frontend:
+    image: ainulattique/smartgrader-frontend:latest
+    container_name: smartgrader-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - BACKEND_URL=http://backend:5000
+      - NODE_ENV=production
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  smartgrader_data:
